@@ -1,19 +1,20 @@
+
+how do i use gpu in colab for this
+
 # -*- coding: utf-8 -*-
 
 !pip install torch transformers datasets
-!pip install accelerate -U
-
+!pip install accelerate -U`
 import torch
 from transformers import LlamaForSequenceClassification, LlamaTokenizer, Trainer, TrainingArguments
 from datasets import load_dataset, load_metric
 import numpy as np
 
-# Check if a GPU is available
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-print(f"Using device: {device}")
-
 # Load the IMDB dataset
 dataset = load_dataset('imdb')
+
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+print(f"Using device: {device}")
 
 # Split the dataset into training and test sets
 train_dataset = dataset['train']
@@ -46,7 +47,6 @@ model = LlamaForSequenceClassification.from_pretrained('locuslab/tofu_ft_llama2-
 # Enable gradient checkpointing
 model.gradient_checkpointing_enable()
 
-# Move the model to the GPU if available
 model.to(device)
 
 # Define the training arguments with mixed precision and reduced batch size
@@ -56,6 +56,42 @@ training_args = TrainingArguments(
     learning_rate=2e-5,
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    fp16=True)
+
+
+# Load the pre-trained LLaMA model with gradient checkpointing enabled
+model = LlamaForSequenceClassification.from_pretrained('locuslab/tofu_ft_llama2-7b', num_labels=2)
+
+# Enable gradient checkpointing
+model.gradient_checkpointing_enable()
+
+# Define the training arguments with mixed precision and reduced batch size
+training_args = TrainingArguments(
+    output_dir='./results',
+    evaluation_strategy='epoch',
+    learning_rate=2e-5,
+    per_device_train_batch_size=4,
+    per_device_eval_batch_size=4,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    fp16=True)
+
+
+# Load the pre-trained LLaMA model with gradient checkpointing enabled
+model = LlamaForSequenceClassification.from_pretrained('locuslab/tofu_ft_llama2-7b', num_labels=2)
+
+# Enable gradient checkpointing
+model.gradient_checkpointing_enable()
+
+# Define the training arguments with mixed precision and reduced batch size
+training_args = TrainingArguments(
+    output_dir='./results',
+    evaluation_strategy='epoch',
+    learning_rate=2e-5,
+    per_device_train_batch_size=4,  # Reduce batch size
+    per_device_eval_batch_size=4,   # Reduce batch size
     num_train_epochs=3,
     weight_decay=0.01,
     fp16=True  # Enable mixed precision training
@@ -101,6 +137,8 @@ trainer = Trainer(
 )
 
 trainer.train()
+
+
 
 # Evaluate the model after unlearning
 post_unlearning_metrics = trainer.evaluate(tokenized_test)
