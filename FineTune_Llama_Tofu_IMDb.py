@@ -1,6 +1,4 @@
 
-how do i use gpu in colab for this
-
 # -*- coding: utf-8 -*-
 
 !pip install torch transformers datasets
